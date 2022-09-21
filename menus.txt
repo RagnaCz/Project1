@@ -1,0 +1,9 @@
+BBQ Pork,               120        
+Hainanese Chicken Rice, 170
+Roasted Duck with Rice, 150  
+Vegetarian Fried Rice,  100
+Wonton Soup,             80
+
+
+
+
