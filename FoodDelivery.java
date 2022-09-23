@@ -2,7 +2,9 @@ package Project1;
 
 import java.util.*;
 import java.io.*;
-
+////////////////////////////////////////////////////////////////////////////////
+//Exception handeling
+////////////////////////////////////////////////////////////////////////////////
 class MissingInputException extends Exception {
     private int length;
     public MissingInputException(int i) {
@@ -31,87 +33,169 @@ class InvalidInputException extends Exception{
         System.out.println(": For input: "+num);
     }
 }
-
-
-class Menu{
+////////////////////////////////////////////////////////////////////////////////
+//Menu Class
+////////////////////////////////////////////////////////////////////////////////
+class Menu implements Comparable<Menu>{
     private String name;
     private int price;
     private int totalDishes = 0;
+    private boolean cheapestmenu = false;
     
-    
+    //Constructor
     public Menu(String name,int price){
         this.name = name;
         this.price = price;
+    }    
+
+    //Comparable
+    @Override
+    public int compareTo(Menu other) {
+        if (this.price < other.price) return 1;
+        else return -1;
     }
-    public int getPrice(){
-         return price;
-    }
-    public int getTotaldishes(){
-        return totalDishes;
-    }
+    
+    //get method
+    public int getPrice()                 {return price;}
+    public String getName()               {return name;}
+    public int getTotaldishes()           {return totalDishes;}
+    public boolean getIndexCheapestMenu() {return cheapestmenu;}
+    
+    //set method
+    public void setCheapIndex()           {cheapestmenu = true;}
+    public void addTotaldishes(int dish)  {this.totalDishes+=dish;}
+    
+    //Print data method
     public void getdata(){
-        System.out.println("Name = " + name + " Price = " + price);
+        System.out.print(String.format("%-24s",name) + " Price = " + String.format("%3d",price) + "   total delivery = " + totalDishes + "\n");
     }
 }
-
+////////////////////////////////////////////////////////////////////////////////
+//Order Class
+////////////////////////////////////////////////////////////////////////////////
 class Order{
     private int ID;
     private int orderbill = 0;
+    private int finalbill = 0;
     private int [] orderlist = {0,0,0,0,0};
+    private int freeCheapestMenuqty = 0;
+    int index_cheap = 0;
     
-    public void process(){
-        for(int i = 0 ; i < 5 ; i++){
-            
-        }
+    //Process method from requirement
+    public void process(int price,int index,ArrayList<Menu> AL1,ArrayList<Customer> AL3){
+        orderbill += orderlist[index]*price;
+        if(index == 4){
+            for(int i = 0 ; i < 5 ; i++){ if(AL1.get(i).getIndexCheapestMenu()){index_cheap = i;break;}} 
+            freeCheapestMenuqty =  + (orderbill/1000);
+            for(int i = 0 ; i < AL3.size() ; i++){
+                if(AL3.get(i).havebillID(ID)){
+                    AL3.get(i).updatePoints(orderbill);
+                    AL3.get(i).setPointhistory(AL3.get(i).getpoints());
+                    if(AL3.get(i).getpoints()>=500){
+                        AL3.get(i).usePoints();
+                        AL3.get(i).setPointhistory(AL3.get(i).getpoints());
+                        finalbill = ((orderbill*95)/100) + 40;
+                    }else{
+                        AL3.get(i).setPointhistory(AL3.get(i).getpoints());
+                        finalbill = orderbill + 40;
+                    }
+                }
+            }
+            AL1.get(index_cheap).addTotaldishes(freeCheapestMenuqty);
+        } 
     }
     
+    //Constructor
     public Order(int id,int [] order){
         this.ID = id;
         orderlist = order;
     }
     
-    public void getdata(){
-        System.out.println(ID);
-        for(int i = 0 ; i < orderlist.length ; i++){
-            System.out.print(orderlist[i]+ " ");
+    //Print data method
+    public void showBill(ArrayList<Menu> AL1,ArrayList<Customer> AL3){
+        String name = "";
+        int index = 0;
+        for(int i = 0 ; i < AL3.size() ; i++){
+            if(AL3.get(i).havebillID(ID)){
+                name = AL3.get(i).getname();
+                index = i;
+            }
         }
-        System.out.println();
+        System.out.print("Order " + String.format("%2d,",ID) + name +  " >> ");
+        for(int i = 0 ; i < 5 ; i++){
+            System.out.print(AL1.get(i).getName() + String.format(" (%2d)    ",orderlist[i]));
+        }
+        System.out.println("\n                  order bill = " + String.format("%,6d",orderbill) + "     current points = " + String.format("%,5d",AL3.get(index).getPointhistory(AL3.get(index).getpointindex())) + "    free " + AL1.get(index_cheap).getName() + " = " + freeCheapestMenuqty);
+        System.out.println("                  final bill = " + String.format("%,6d",finalbill) + "     current points = " + String.format("%,5d",AL3.get(index).getPointhistory(AL3.get(index).getpointindex())) + "\n");
     }
 }
-
-class Customer{
+////////////////////////////////////////////////////////////////////////////////
+//Customer Class
+////////////////////////////////////////////////////////////////////////////////
+class Customer implements Comparable<Customer>{
     private String name;
-    private int points;
+    private int points = 0;
+    private double pointlong = 0;
+    private int index_point = 0;
     
     private ArrayList<Integer> billID = new ArrayList<>();
+    private ArrayList<Integer> point_history = new ArrayList<>();
     
     public Customer(String name, int index){
         this.name = name;
         billID.add(index);
     }
+    @Override
+    public int compareTo(Customer other) {
+        if (this.points < other.points)       return 1;
+        else return -1;
+    }
+    
+    public boolean havebillID(int ID){
+        return billID.contains(ID);
+    }
     
     public void updatePoints(int points){
-       this.points = this.points + points;
+        pointlong = Double.valueOf(points)/10 ;
+        if(pointlong > points/10)
+            this.points = this.points + points/10 + 1;
+        else{
+           this.points = this.points + points/10; 
+        }
     }
     
     public void updatebill(int index){
         billID.add(index);
     }
     
+    public void usePoints(){
+        points -=500;
+    }
+    
     public String getname(){
         return name;
+    }
+    
+    
+    public void setPointhistory(int point){
+        point_history.add(point);
+    } 
+    public int getsizepointhistory(){
+        return point_history.size();
+    }
+    public int getPointhistory(int index){
+        return point_history.get(index);
+    }
+    public int getpointindex(){
+        index_point++;
+        return index_point-1;
     }
     
     public int getpoints(){
         return points;
     }
     public void getdata(){
-        System.out.println("name : "+name + "  point : " + points);
-        System.out.print("BillList : ");
-        for(int i = 0 ; i < billID.size() ; i++){
-            System.out.print(billID.get(i) + " ");
-        }
-        System.out.println();
+        System.out.println(name + " points = " + String.format("%5d",points));
     }
 } 
 
@@ -131,7 +215,7 @@ class MyInputReader<T>{
     }
     
     //get data from openfile method, have line and arraylist in param
-    public void processLine(String line, ArrayList<T> AL)
+    public void processLine(String line, ArrayList<Menu> AL)
     {
         try
         {
@@ -140,7 +224,19 @@ class MyInputReader<T>{
                 buf[i] = buf[i].trim();
             }
             
-            AL.add((T) new Menu(buf[0],Integer.parseInt(buf[1])));
+            AL.add(new Menu(buf[0],Integer.parseInt(buf[1])));
+            int cheapIndex = 0;
+            int temp_price = 0;
+            if(AL.size() == 5){
+                for (int i = 0 ; i < AL.size() ; i++) {
+                    if(i==0) {temp_price = AL.get(i).getPrice();cheapIndex = 0;}
+                    else if(AL.get(i).getPrice()<temp_price){
+                            cheapIndex = i;
+                            temp_price = AL.get(i).getPrice();
+                    }
+                }
+                AL.get(cheapIndex).setCheapIndex();
+            }
         }
         catch(RuntimeException e)  //runtime exception
         {   
@@ -148,7 +244,7 @@ class MyInputReader<T>{
             System.out.println(line+"\n");
         }
     }
-    public void processLine2(String line, ArrayList<T> AL2, ArrayList<Customer> AL3) throws Exception
+    public void processLine2(String line, ArrayList<Menu> AL1 ,ArrayList<Order> AL2, ArrayList<Customer> AL3) throws Exception
     {
         try
         {
@@ -163,7 +259,7 @@ class MyInputReader<T>{
             for(int i = 2 ; i < 7 ; i++ ){
                 try{   
                     buf_quantity[i-2] = Integer.parseInt(buf[i]);                    
-                    if(buf.length < 7 && i == buf.length - 1){
+                    if(buf.length < 7 && i == buf.length - 2 ){
                         Error = new MissingInputException(buf.length);
                         error = true;
                     }else if(buf.length > 7 && i == 6){
@@ -177,8 +273,9 @@ class MyInputReader<T>{
                 }catch(RuntimeException e){
                     System.out.println(e);
                     buf[i] = "0";
+                    buf_quantity[i-2] = Integer.parseInt(buf[i]); 
                     hasError = true;
-                    error = false;i--;
+                    error = false;
                 }catch(MissingInputException e){
                     System.out.print(e);
                     e.data();
@@ -189,7 +286,7 @@ class MyInputReader<T>{
                     }
                     buf = temp;
                     hasError = true;
-                    error = false;i--;
+                    error = false;
                 }catch(OverInputException e){
                     System.out.print(e);
                     e.data();
@@ -197,13 +294,16 @@ class MyInputReader<T>{
                     System.arraycopy(buf, 0, temp, 0, 7);
                     buf = temp;
                     hasError = true;
-                    error = false;i--;
+                    error = false;
                 }catch(InvalidInputException e){
                     System.out.print(e);
                     e.data();
                     buf[i] = "0";
+                    buf_quantity[i-2] = Integer.parseInt(buf[i]); 
                     hasError = true;
-                    error = false;i--;
+                    error = false;
+                }finally{
+                    AL1.get(i-2).addTotaldishes(buf_quantity[i-2]);
                 }
             }
             
@@ -212,8 +312,6 @@ class MyInputReader<T>{
                 for(int i=0; i<5; i++) System.out.print(",  "+ buf_quantity[i]);
                 System.out.print("]\n\n");
             }
-            AL2.add((T) new Order(Integer.parseInt(buf[0]),buf_quantity));
-            
             boolean check_empty = true;
             int index = 0;
             if(AL3.isEmpty()==false){
@@ -229,6 +327,8 @@ class MyInputReader<T>{
             }else{
                 AL3.get(index).updatebill(Integer.parseInt(buf[0]));
             }
+            AL2.add(new Order(Integer.parseInt(buf[0]),buf_quantity));
+            for(int i = 0 ; i < 5 ; i++ ) AL2.get(Integer.parseInt(buf[0])-1).process(AL1.get(i).getPrice(), i , AL1 , AL3);
         }
         catch(RuntimeException e)  //runtime exception
         {   
@@ -238,7 +338,7 @@ class MyInputReader<T>{
 
     }
      
-     public void openfile(ArrayList<T> AL1,ArrayList<T> AL2, ArrayList<Customer> AL3) throws Exception{
+     public void openfile(ArrayList<Menu> AL1,ArrayList<Order> AL2, ArrayList<Customer> AL3) throws Exception{
          opensuccess = false;
          String fn = fileName;
          for( int k = 0 ; k < 2 ; k++ ){
@@ -256,7 +356,7 @@ class MyInputReader<T>{
                         }
                     }else{
                         while(fileread.hasNext()){
-                            processLine2(fileread.nextLine(),AL2,AL3);
+                            processLine2(fileread.nextLine(),AL1,AL2,AL3);
                         }
                     }
              }catch(FileNotFoundException e){
@@ -296,14 +396,22 @@ public class FoodDelivery{
         
         inp.openfile(menu_list,order_list,customer_list);
         
-        for(int i = 0 ; i < 5 ; i++){
-            menu_list.get(i).getdata();
-        }
+        System.out.println("\n=== Order processing ===");
         for(int i = 0 ; i < order_list.size() ; i++){
-            order_list.get(i).getdata();
+            order_list.get(i).showBill(menu_list,customer_list);
         }
+        
+        System.out.println("\n=== Customer summary ===");
+        Collections.sort(customer_list);
         for(int i = 0 ; i < customer_list.size() ; i++){
             customer_list.get(i).getdata();
         }
+        
+        System.out.println("\n=== Menu summary ===");
+        Collections.sort(menu_list);
+        for(int i = 0 ; i < menu_list.size() ; i++){
+            menu_list.get(i).getdata();
+        }
+        
     }
 }
