@@ -138,23 +138,32 @@ class Customer implements Comparable<Customer>{
     private double pointlong = 0;
     private int index_point = 0;
     
+    //ArrayList for Customer
     private ArrayList<Integer> billID = new ArrayList<>();
     private ArrayList<Integer> point_history = new ArrayList<>();
     
+    //Constructor
     public Customer(String name, int index){
         this.name = name;
         billID.add(index);
     }
+    
+    //Comparable
     @Override
     public int compareTo(Customer other) {
         if (this.points < other.points)       return 1;
         else return -1;
     }
     
-    public boolean havebillID(int ID){
-        return billID.contains(ID);
-    }
-    
+    //get method
+    public boolean havebillID(int ID)      {return billID.contains(ID);}
+    public String getname()                {return name;}
+    public int getsizepointhistory()       {return point_history.size();}
+    public int getPointhistory(int index)  {return point_history.get(index);}
+    public int getpointindex()             {index_point++;return index_point-1;}
+    public int getpoints()                 {return points;}
+        
+    //set method 
     public void updatePoints(int points){
         pointlong = Double.valueOf(points)/10 ;
         if(pointlong > points/10)
@@ -163,43 +172,18 @@ class Customer implements Comparable<Customer>{
            this.points = this.points + points/10; 
         }
     }
+    public void updatebill(int index)      {billID.add(index);}
+    public void usePoints()                {points -=500;}
+    public void setPointhistory(int point) {point_history.add(point);} 
     
-    public void updatebill(int index){
-        billID.add(index);
-    }
-    
-    public void usePoints(){
-        points -=500;
-    }
-    
-    public String getname(){
-        return name;
-    }
-    
-    
-    public void setPointhistory(int point){
-        point_history.add(point);
-    } 
-    public int getsizepointhistory(){
-        return point_history.size();
-    }
-    public int getPointhistory(int index){
-        return point_history.get(index);
-    }
-    public int getpointindex(){
-        index_point++;
-        return index_point-1;
-    }
-    
-    public int getpoints(){
-        return points;
-    }
+    //Print data method
     public void getdata(){
         System.out.println(name + " points = " + String.format("%5d",points));
     }
 } 
-
+////////////////////////////////////////////////////////////////////////////////
 //Class that store location of file, open file and Exception handling
+////////////////////////////////////////////////////////////////////////////////
 class MyInputReader<T>{
     private String path, fileName, fileName2;
     boolean opensuccess = false;
@@ -214,7 +198,7 @@ class MyInputReader<T>{
         sc = new Scanner(System.in);
     }
     
-    //get data from openfile method, have line and arraylist in param
+    //get data from openfile method, have line and arraylist in param for menu only
     public void processLine(String line, ArrayList<Menu> AL)
     {
         try
@@ -244,6 +228,7 @@ class MyInputReader<T>{
             System.out.println(line+"\n");
         }
     }
+    //get data from openfile method, have line and arraylist in param for order and customer
     public void processLine2(String line, ArrayList<Menu> AL1 ,ArrayList<Order> AL2, ArrayList<Customer> AL3) throws Exception
     {
         try
@@ -256,18 +241,19 @@ class MyInputReader<T>{
             for(int i = 0 ; i < buf.length ; i++){
                 buf[i] = buf[i].trim();
             }
-            for(int i = 2 ; i < 7 ; i++ ){
-                try{   
-                    buf_quantity[i-2] = Integer.parseInt(buf[i]);                    
-                    if(buf.length < 7 && i == buf.length - 2 ){
+            for(int i = 2 ; i < 8 ; i++ ){
+                try{  
+                    if(i>=2 && i < buf.length)buf_quantity[i-2] = Integer.parseInt(buf[i]);             
+                    if(buf.length < 7 && i == 7 ){
                         Error = new MissingInputException(buf.length);
                         error = true;
-                    }else if(buf.length > 7 && i == 6){
+                    }else if(buf.length > 7 && i == 7){
                         Error = new OverInputException(buf.length); 
                         error = true;
-                    }else if(Integer.parseInt(buf[i]) < 0){
+                    }else if(i>=2 && i < buf.length){
+                       if(Integer.parseInt(buf[i]) < 0){
                         Error = new InvalidInputException(Integer.parseInt(buf[i]));
-                        error = true;
+                        error = true;}
                     }
                 if(error){error=false;throw Error;}
                 }catch(RuntimeException e){
@@ -303,7 +289,7 @@ class MyInputReader<T>{
                     hasError = true;
                     error = false;
                 }finally{
-                    AL1.get(i-2).addTotaldishes(buf_quantity[i-2]);
+                    if(i<buf.length)AL1.get(i-2).addTotaldishes(buf_quantity[i-2]);
                 }
             }
             
@@ -381,7 +367,9 @@ class MyInputReader<T>{
 
     }
 }
-
+////////////////////////////////////////////////////////////////////////////////
+//FoodDelivery for store main method
+////////////////////////////////////////////////////////////////////////////////
 public class FoodDelivery{
     public static void main(String [] args) throws Exception{
         //Directory
