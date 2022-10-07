@@ -52,7 +52,12 @@ class Menu implements Comparable<Menu>{
     @Override
     public int compareTo(Menu other) {
         if (this.price < other.price) return 1;
-        else return -1;
+        else if (this.price < other.price) return -1;
+        else {
+            if(this.name.compareToIgnoreCase(other.name)>0)         return 2;
+                   else if (this.name.compareToIgnoreCase(other.name)<0)   return -2;
+            else return 0;
+        }
     }
     
     //get method
@@ -152,7 +157,12 @@ class Customer implements Comparable<Customer>{
     @Override
     public int compareTo(Customer other) {
         if (this.points < other.points)       return 1;
-        else return -1;
+        else if (this.points > other.points) return -1;
+        else {
+            if(this.name.compareToIgnoreCase(other.name)>0)         return 2;
+                   else if (this.name.compareToIgnoreCase(other.name)<0)   return -2;
+            else return 0;
+        }
     }
     
     //get method
